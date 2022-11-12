@@ -8,7 +8,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let bearer_token = std::env::var("BEARER_TOKEN").expect("BEARER_TOKEN not set");
 
     let client = reqwest::Client::new();
-    let uri = "https://api.twitter.com/2/tweets/search/recent?query=ekusiadadus";
+    let tweet_fileds = "tweet.fields=author_id,created_at,entities,geo,in_reply_to_user_id,lang,possibly_sensitive,referenced_tweets,source,text,withheld";
+    let uri = "https://api.twitter.com/2/tweets/search/recent?query=ekusiadadus".to_string()
+        + "&"
+        + tweet_fileds;
     let response = client
         .get(uri)
         .bearer_auth(bearer_token)
