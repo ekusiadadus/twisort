@@ -5,7 +5,7 @@ import json
 import datetime
 from google.cloud import bigquery
 
-bearer_token = "AAAAAAAAAAAAAAAAAAAAAJp6hAEAAAAAITmKIhCgGBUodNau3UwaXFpuAaI%3Do9Zt83hNEHPkWqp4M0G0LESk1c8YnL87sihOq4aybbekyIkJAX"
+bearer_token = os.environ.get("BEARER_TOKEN")
 headers = {"Authorization": "Bearer {}".format(bearer_token)}
 
 
