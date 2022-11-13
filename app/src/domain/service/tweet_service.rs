@@ -1,7 +1,6 @@
 use crate::domain::interface::*;
 use crate::domain::model::*;
 use crate::error::*;
-use serde::*;
 use std::sync::Arc;
 
 #[derive(Clone)]

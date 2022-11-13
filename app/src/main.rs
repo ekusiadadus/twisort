@@ -1,5 +1,4 @@
 // write Twitter API 2 get tweets about ekusiadadus using tokio with BEARER_TOKEN
-#[macro_use]
 extern crate diesel;
 
 #[macro_use]
