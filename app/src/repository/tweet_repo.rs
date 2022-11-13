@@ -6,6 +6,30 @@ use crate::schema::tweet_records;
 use async_trait::async_trait;
 use diesel::dsl::*;
 use diesel::prelude::*;
+use serde::*;
+use std::sync::Arc;
+
+#[derive(Debug)]
+pub enum TweetRepoError {
+    HttpClientError,
+}
+
+impl IServiceError for TweetRepoError {
+    fn error_type(&self) -> String {
+        use TweetRepoError::*;
+        match self {
+            HttpClientError => "http_client_error",
+        }
+        .to_string()
+    }
+
+    fn status_code(&self) -> http::StatusCode {
+        use TweetRepoError::*;
+        match self {
+            HttpClientError => http::StatusCode::INTERNAL_SERVER_ERROR,
+        }
+    }
+}
 
 #[derive(Queryable, Insertable, Identifiable)]
 pub struct TweetRecord {
@@ -63,16 +87,38 @@ impl TweetRecord {
 
 pub struct TweetRepository {
     db: DBConnector,
+    http_client: Arc<dyn IHttpClient + Sync + Send>,
+    bearer_token: String,
 }
 
 impl TweetRepository {
-    pub fn new(db: DBConnector) -> Self {
-        Self { db }
+    pub fn new(
+        db: DBConnector,
+        http_client: Arc<dyn IHttpClient + Sync + Send>,
+        bearer_token: String,
+    ) -> Self {
+        Self {
+            db,
+            http_client,
+            bearer_token,
+        }
     }
+}
 
-    pub fn get_table() -> tweet_records::table {
-        tweet_records::table
-    }
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TweetResponse {
+    pub data: Vec<Tweet>,
+    pub meta: TweetResponseMeta,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TweetResponseMeta {
+    pub newest_id: String,
+    pub oldest_id: String,
+    pub result_count: i64,
+    pub next_token: Option<String>,
 }
 
 #[async_trait]
@@ -87,14 +133,6 @@ impl ITweetRepository for TweetRepository {
         record.to_model()
     }
 
-    async fn save(&self, tweet: Tweet) -> Result<()> {
-        let record = TweetRecord::from_model(tweet)?;
-        self.db
-            .execute(replace_into(tweet_records::table).values::<TweetRecord>(record))
-            .await?;
-        Ok(())
-    }
-
     async fn search(&self, query: &str) -> Result<Vec<Tweet>> {
         let records = self
             .db
@@ -106,5 +144,54 @@ impl ITweetRepository for TweetRepository {
             .into_iter()
             .map(|record| record.to_model())
             .collect::<Result<Vec<Tweet>>>()
+    }
+
+    async fn get_tweets_by_hashtag(&self, hashtag: &str) -> Result<Vec<Tweet>> {
+        let tweet_fileds = "tweet.fields=author_id,created_at,entities,geo,in_reply_to_user_id,lang,possibly_sensitive,referenced_tweets,source,text,withheld";
+        let uri = "https://api.twitter.com/2/tweets/search/recent?query=ekusiadadus".to_string()
+            + "&"
+            + tweet_fileds;
+        let uri = uri.replace("ekusiadadus", hashtag);
+        let mut headers = reqwest::header::HeaderMap::new();
+        // add bearer_token
+        let bearer_token = format!("Bearer {}", self.bearer_token);
+        headers.insert(
+            reqwest::header::AUTHORIZATION,
+            bearer_token.parse().unwrap(),
+        );
+        headers.insert(
+            reqwest::header::CONTENT_TYPE,
+            "application/json".parse().unwrap(),
+        );
+        let response = self
+            .http_client
+            .get(&uri, Some(headers))
+            .await?
+            .text()
+            .await?;
+        let tweets = serde_json::from_str::<TweetResponse>(&response)
+            .map_err(|e| ServiceError::new(TweetRepoError::HttpClientError, e))?;
+        Ok(tweets.data)
+    }
+
+    async fn save(&self, tweet: Tweet) -> Result<()> {
+        let record = TweetRecord::from_model(tweet)?;
+        self.db
+            .execute(replace_into(tweet_records::table).values::<TweetRecord>(record))
+            .await?;
+        Ok(())
+    }
+
+    async fn save_tweets(&self, tweets: Vec<Tweet>) -> Result<()> {
+        let records = tweets
+            .into_iter()
+            .map(|tweet| TweetRecord::from_model(tweet))
+            .collect::<Result<Vec<TweetRecord>>>()?;
+        for record in records {
+            self.db
+                .execute(replace_into(tweet_records::table).values::<TweetRecord>(record))
+                .await?;
+        }
+        Ok(())
     }
 }

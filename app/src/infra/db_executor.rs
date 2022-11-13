@@ -73,9 +73,9 @@ impl DBConnector {
         Q: diesel::query_builder::QueryFragment<diesel::sqlite::Sqlite>,
         Q: diesel::query_builder::QueryId,
     {
-        let conn = self.0.get_connection();
+        let mut conn = self.0.get_connection();
         tokio::task::spawn_blocking(move || {
-            let result = query.execute(&conn)?;
+            let result = query.execute(&mut conn)?;
             Ok(result)
         })
         .await?
@@ -85,12 +85,13 @@ impl DBConnector {
     where
         Q: diesel::query_dsl::limit_dsl::LimitDsl,
         Q: diesel::RunQueryDsl<diesel::SqliteConnection>,
-        diesel::helper_types::Limit<Q>: diesel::query_dsl::LoadQuery<diesel::SqliteConnection, T>,
+        diesel::helper_types::Limit<Q>:
+            for<'a> diesel::query_dsl::LoadQuery<'a, diesel::SqliteConnection, T>,
     {
-        let conn = self.0.get_connection();
+        let mut conn = self.0.get_connection();
 
         tokio::task::spawn_blocking(move || {
-            let result = query.first(&conn)?;
+            let result = query.first(&mut conn)?;
             Ok(result)
         })
         .await?
@@ -99,46 +100,46 @@ impl DBConnector {
     pub async fn load<T: 'static + Send, Q: 'static + Send>(&self, query: Q) -> Result<Vec<T>>
     where
         Q: diesel::RunQueryDsl<diesel::SqliteConnection>,
-        Q: diesel::query_dsl::LoadQuery<diesel::SqliteConnection, T>,
+        Q: for<'a> diesel::query_dsl::LoadQuery<'a, diesel::SqliteConnection, T>,
     {
-        let conn = self.0.get_connection();
+        let mut conn = self.0.get_connection();
 
         tokio::task::spawn_blocking(move || {
-            let result = query.load(&conn)?;
+            let result = query.load(&mut conn)?;
             Ok(result)
         })
         .await?
     }
 
-    pub async fn load_sql<
-        T: 'static + Send + diesel::deserialize::QueryableByName<diesel::sqlite::Sqlite>,
-    >(
-        &self,
-        query: impl Into<String>,
-    ) -> Result<Vec<T>> {
-        let conn = self.0.get_connection();
-        let q = query.into();
+    // pub async fn load_sql<
+    //     T: 'static + Send + diesel::deserialize::QueryableByName<diesel::sqlite::Sqlite>,
+    // >(
+    //     &self,
+    //     query: impl Into<String>,
+    // ) -> Result<Vec<T>> {
+    //     let mut conn = self.0.get_connection();
+    //     let q = query.into();
 
-        tokio::task::spawn_blocking(move || {
-            use diesel::prelude::*;
+    //     tokio::task::spawn_blocking(move || {
+    //         use diesel::prelude::*;
 
-            let result = diesel::sql_query(q).load::<T>(&conn)?;
-            Ok(result)
-        })
-        .await?
-    }
+    //         let result = diesel::sql_query(q).load::<T>(&mut conn)?;
+    //         Ok(result)
+    //     })
+    //     .await?
+    // }
 
-    pub async fn get_result<T: 'static + Send, Q: 'static + Send>(&self, query: Q) -> Result<T>
-    where
-        Q: diesel::RunQueryDsl<diesel::SqliteConnection>,
-        Q: diesel::query_dsl::LoadQuery<diesel::SqliteConnection, T>,
-    {
-        let conn = self.0.get_connection();
+    // pub async fn get_result<T: 'static + Send, Q: 'static + Send>(&self, query: Q) -> Result<T>
+    // where
+    //     Q: diesel::RunQueryDsl<diesel::SqliteConnection>,
+    //     Q: for<'a> diesel::query_dsl::LoadQuery<'a, diesel::SqliteConnection, T>,
+    // {
+    //     let mut conn = self.0.get_connection();
 
-        tokio::task::spawn_blocking(move || {
-            let result = query.get_result(&conn)?;
-            Ok(result)
-        })
-        .await?
-    }
+    //     tokio::task::spawn_blocking(move || {
+    //         let result = query.get_result(&mut conn)?;
+    //         Ok(result)
+    //     })
+    //     .await?
+    // }
 }

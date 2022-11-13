@@ -25,30 +25,48 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .and_then(|it| it.parse().ok())
         .unwrap_or(5);
     let bearer_token = std::env::var("BEARER_TOKEN").expect("BEARER_TOKEN not set");
-    let tweets_table_name = std::env::var("TWEETS_TABLE_NAME").expect("TWEETS_TABLE_NAME not set");
+    // let tweets_table_name = std::env::var("TWEETS_TABLE_NAME").expect("TWEETS_TABLE_NAME not set");
 
     let app = initializer::new(initializer::Config {
         db_url: db_url,
         db_pool_size: db_pool_size,
-        tweets_table_name: tweets_table_name,
+        // tweets_table_name: tweets_table_name,
         bearer_token: bearer_token,
     })
     .await;
 
-    let client = reqwest::Client::new();
-    let tweet_fileds = "tweet.fields=author_id,created_at,entities,geo,in_reply_to_user_id,lang,possibly_sensitive,referenced_tweets,source,text,withheld";
-    let uri = "https://api.twitter.com/2/tweets/search/recent?query=ekusiadadus".to_string()
-        + "&"
-        + tweet_fileds;
-    let response = client
-        .get(uri)
-        .bearer_auth(bearer_token)
-        .send()
-        .await?
-        .error_for_status()?;
+    app.infras
+        .ensure_initialized()
+        .await
+        .expect("Infra initialization error");
 
-    let body = response.text().await?;
-    println!("{}", body);
+    let tweets = app
+        .services
+        .tweet
+        .get_tweets_by_hashtag("ekusiadadus")
+        .await
+        .unwrap();
+
+    print!("{:?}", tweets);
+
+    app.services.tweet.save_tweets(tweets).await.unwrap();
 
     Ok(())
+
+    // let client = reqwest::Client::new();
+    // let tweet_fileds = "tweet.fields=author_id,created_at,entities,geo,in_reply_to_user_id,lang,possibly_sensitive,referenced_tweets,source,text,withheld";
+    // let uri = "https://api.twitter.com/2/tweets/search/recent?query=ekusiadadus".to_string()
+    //     + "&"
+    //     + tweet_fileds;
+    // let response = client
+    //     .get(uri)
+    //     .bearer_auth(bearer_token)
+    //     .send()
+    //     .await?
+    //     .error_for_status()?;
+
+    // let body = response.text().await?;
+    // println!("{}", body);
+
+    // Ok(())
 }
