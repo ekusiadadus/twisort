@@ -37,7 +37,7 @@ pub struct Repository {
     pub tweet: Arc<repository::TweetRepository>,
 }
 
-pub fn repository(config: &Config, infras: &Infras) -> Repository {
+pub fn repository(infras: &Infras) -> Repository {
     let tweet = Arc::new(repository::TweetRepository::new(infras.db.clone()));
     Repository { tweet }
 }
@@ -56,7 +56,7 @@ pub struct AppContext {
 
 pub async fn new(config: Config) -> AppContext {
     let infras = infras(&config).await;
-    let repository = repository(&config, &infras);
+    let repository = repository(&infras);
     let services = Services {
         tweet: service::TweetService::new(repository.tweet.clone()),
     };
