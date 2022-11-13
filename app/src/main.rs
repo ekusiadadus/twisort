@@ -25,12 +25,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .and_then(|it| it.parse().ok())
         .unwrap_or(5);
     let bearer_token = std::env::var("BEARER_TOKEN").expect("BEARER_TOKEN not set");
-    let tweets_table_name = std::env::var("TWEETS_TABLE_NAME").expect("TWEETS_TABLE_NAME not set");
+    // let tweets_table_name = std::env::var("TWEETS_TABLE_NAME").expect("TWEETS_TABLE_NAME not set");
 
     let app = initializer::new(initializer::Config {
         db_url: db_url,
         db_pool_size: db_pool_size,
-        tweets_table_name: tweets_table_name,
+        // tweets_table_name: tweets_table_name,
         bearer_token: bearer_token,
     })
     .await;

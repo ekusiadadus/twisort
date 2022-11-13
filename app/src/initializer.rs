@@ -7,7 +7,7 @@ use std::sync::Arc;
 pub struct Config {
     pub db_url: String,
     pub db_pool_size: u32,
-    pub tweets_table_name: String,
+    // pub tweets_table_name: String,
     pub bearer_token: String,
 }
 
@@ -15,6 +15,7 @@ pub struct Config {
 pub struct Infras {
     pub db: infra::DBConnector,
     pub http_client: Arc<infra::HttpClient>,
+    pub bearer_token: String,
 }
 impl Infras {
     pub async fn ensure_initialized(&self) -> Option<()> {
@@ -33,6 +34,7 @@ pub async fn infras(config: &Config) -> Infras {
     Infras {
         db: db_connector,
         http_client: http_client.clone(),
+        bearer_token: config.bearer_token.clone(),
     }
 }
 
@@ -46,6 +48,7 @@ pub fn repository(infras: &Infras) -> Repository {
     let tweet = Arc::new(repository::TweetRepository::new(
         infras.db.clone(),
         infras.http_client.clone(),
+        infras.bearer_token.clone(),
     ));
     Repository { tweet }
 }

@@ -88,11 +88,20 @@ impl TweetRecord {
 pub struct TweetRepository {
     db: DBConnector,
     http_client: Arc<dyn IHttpClient + Sync + Send>,
+    bearer_token: String,
 }
 
 impl TweetRepository {
-    pub fn new(db: DBConnector, http_client: Arc<dyn IHttpClient + Sync + Send>) -> Self {
-        Self { db, http_client }
+    pub fn new(
+        db: DBConnector,
+        http_client: Arc<dyn IHttpClient + Sync + Send>,
+        bearer_token: String,
+    ) -> Self {
+        Self {
+            db,
+            http_client,
+            bearer_token,
+        }
     }
 }
 
@@ -144,11 +153,16 @@ impl ITweetRepository for TweetRepository {
             + tweet_fileds;
         let uri = uri.replace("ekusiadadus", hashtag);
         let mut headers = reqwest::header::HeaderMap::new();
+        // add bearer_token
+        let bearer_token = format!("Bearer {}", self.bearer_token);
+        headers.insert(
+            reqwest::header::AUTHORIZATION,
+            bearer_token.parse().unwrap(),
+        );
         headers.insert(
             reqwest::header::CONTENT_TYPE,
             "application/json".parse().unwrap(),
         );
-
         let response = self
             .http_client
             .get(&uri, Some(headers))
