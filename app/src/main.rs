@@ -35,12 +35,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     })
     .await;
 
+    app.infras
+        .ensure_initialized()
+        .await
+        .expect("Infra initialization error");
+
     let tweets = app
         .services
         .tweet
         .get_tweets_by_hashtag("ekusiadadus")
         .await
         .unwrap();
+
+    print!("{:?}", tweets);
+
+    app.services.tweet.save_tweets(tweets).await.unwrap();
+
     Ok(())
 
     // let client = reqwest::Client::new();

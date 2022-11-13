@@ -111,35 +111,35 @@ impl DBConnector {
         .await?
     }
 
-    pub async fn load_sql<
-        T: 'static + Send + diesel::deserialize::QueryableByName<diesel::sqlite::Sqlite>,
-    >(
-        &self,
-        query: impl Into<String>,
-    ) -> Result<Vec<T>> {
-        let mut conn = self.0.get_connection();
-        let q = query.into();
+    // pub async fn load_sql<
+    //     T: 'static + Send + diesel::deserialize::QueryableByName<diesel::sqlite::Sqlite>,
+    // >(
+    //     &self,
+    //     query: impl Into<String>,
+    // ) -> Result<Vec<T>> {
+    //     let mut conn = self.0.get_connection();
+    //     let q = query.into();
 
-        tokio::task::spawn_blocking(move || {
-            use diesel::prelude::*;
+    //     tokio::task::spawn_blocking(move || {
+    //         use diesel::prelude::*;
 
-            let result = diesel::sql_query(q).load::<T>(&mut conn)?;
-            Ok(result)
-        })
-        .await?
-    }
+    //         let result = diesel::sql_query(q).load::<T>(&mut conn)?;
+    //         Ok(result)
+    //     })
+    //     .await?
+    // }
 
-    pub async fn get_result<T: 'static + Send, Q: 'static + Send>(&self, query: Q) -> Result<T>
-    where
-        Q: diesel::RunQueryDsl<diesel::SqliteConnection>,
-        Q: for<'a> diesel::query_dsl::LoadQuery<'a, diesel::SqliteConnection, T>,
-    {
-        let mut conn = self.0.get_connection();
+    // pub async fn get_result<T: 'static + Send, Q: 'static + Send>(&self, query: Q) -> Result<T>
+    // where
+    //     Q: diesel::RunQueryDsl<diesel::SqliteConnection>,
+    //     Q: for<'a> diesel::query_dsl::LoadQuery<'a, diesel::SqliteConnection, T>,
+    // {
+    //     let mut conn = self.0.get_connection();
 
-        tokio::task::spawn_blocking(move || {
-            let result = query.get_result(&mut conn)?;
-            Ok(result)
-        })
-        .await?
-    }
+    //     tokio::task::spawn_blocking(move || {
+    //         let result = query.get_result(&mut conn)?;
+    //         Ok(result)
+    //     })
+    //     .await?
+    // }
 }

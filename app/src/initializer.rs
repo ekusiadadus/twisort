@@ -14,6 +14,7 @@ pub struct Config {
 #[derive(Clone)]
 pub struct Infras {
     pub db: infra::DBConnector,
+    pub http_client: Arc<infra::HttpClient>,
 }
 impl Infras {
     pub async fn ensure_initialized(&self) -> Option<()> {
@@ -28,7 +29,11 @@ impl Infras {
 pub async fn infras(config: &Config) -> Infras {
     let db_executor = infra::DBExecutor::new(config.db_url.clone(), config.db_pool_size);
     let db_connector = infra::DBConnector::new(db_executor);
-    Infras { db: db_connector }
+    let http_client = Arc::new(infra::HttpClient::new());
+    Infras {
+        db: db_connector,
+        http_client: http_client.clone(),
+    }
 }
 
 #[derive(Clone)]
@@ -38,7 +43,10 @@ pub struct Repository {
 }
 
 pub fn repository(infras: &Infras) -> Repository {
-    let tweet = Arc::new(repository::TweetRepository::new(infras.db.clone()));
+    let tweet = Arc::new(repository::TweetRepository::new(
+        infras.db.clone(),
+        infras.http_client.clone(),
+    ));
     Repository { tweet }
 }
 
