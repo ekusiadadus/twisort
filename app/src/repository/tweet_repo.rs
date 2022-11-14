@@ -63,7 +63,7 @@ impl TweetRecord {
             None => None,
         };
         Ok(Tweet::new(
-            TweetID(self.id),
+            self.id,
             self.text,
             self.author_id,
             self.created_at,
@@ -93,7 +93,7 @@ impl TweetRecord {
             None => None,
         };
         Ok(TweetRecord {
-            id: tweet.id.0.clone(),
+            id: tweet.id,
             text: tweet.text,
             author_id: tweet.author_id,
             created_at: tweet.created_at,

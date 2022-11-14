@@ -1,11 +1,10 @@
-use crate::domain::model::*;
 use serde::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 
 pub struct Tweet {
-    pub id: TweetID,
+    pub id: String,
     pub text: String,
     pub author_id: String,
     pub created_at: String,
@@ -21,7 +20,7 @@ pub struct Tweet {
 
 impl Tweet {
     pub fn new(
-        id: TweetID,
+        id: String,
         text: String,
         author_id: String,
         created_at: String,
