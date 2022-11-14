@@ -130,7 +130,6 @@ impl TweetRepository {
 }
 
 #[derive(Clone, Deserialize, Serialize, Default)]
-#[serde(rename_all = "camelCase")]
 
 pub struct TweetResponse {
     data: Vec<Tweet>,
@@ -138,7 +137,6 @@ pub struct TweetResponse {
 }
 
 #[derive(Clone, Deserialize, Serialize, Default)]
-#[serde(rename_all = "camelCase")]
 pub struct TweetResponseMeta {
     pub newest_id: String,
     pub oldest_id: String,
