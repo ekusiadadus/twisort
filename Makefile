@@ -8,3 +8,25 @@ run:
 
 batch:
 	python3 bot/main.py
+
+setup-db:
+	diesel setup --database-url=twisort.db
+
+migrate:
+	diesel migration run --database-url=twisort.db
+
+migrate-new:
+	diesel migration generate $(name) --database-url=twisort.db
+
+migrate-rollback:
+	diesel migration redo --database-url=twisort.db
+
+run:
+	cargo run
+
+build:
+	cargo build
+
+test:
+	cargo test
+
