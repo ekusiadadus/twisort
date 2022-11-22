@@ -174,7 +174,8 @@ impl ITweetRepository for TweetRepository {
     async fn get_tweets_by_hashtag(&self, hashtag: &str) -> Result<Vec<Tweet>> {
         // remove retweets
         let tweet_fileds = "tweet.fields=author_id,created_at,entities,geo,in_reply_to_user_id,lang,possibly_sensitive,referenced_tweets,source,text,withheld";
-        let uri = "https://api.twitter.com/2/tweets/search/recent?query=ekusiadadus".to_string()
+        let uri = "https://api.twitter.com/2/tweets/search/recent?query=ekusiadadus -is: retweet"
+            .to_string()
             + "&"
             + tweet_fileds;
         let uri = uri.replace("ekusiadadus", hashtag);

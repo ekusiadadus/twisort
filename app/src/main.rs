@@ -43,7 +43,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let tweets = app
         .services
         .tweet
-        .get_tweets_by_hashtag("ekusiadadus")
+        .get_tweets_by_hashtag("弾き語り")
         .await
         .unwrap();
 
