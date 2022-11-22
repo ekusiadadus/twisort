@@ -45,6 +45,7 @@ pub struct TweetRecord {
     referenced_tweets: Option<String>,
     source: String,
     withheld: Option<String>,
+    bigquery: bool,
 }
 
 impl TweetRecord {
@@ -105,6 +106,7 @@ impl TweetRecord {
             referenced_tweets,
             source: tweet.source.unwrap(),
             withheld,
+            bigquery: false,
         })
     }
 }
@@ -170,6 +172,7 @@ impl ITweetRepository for TweetRepository {
     }
 
     async fn get_tweets_by_hashtag(&self, hashtag: &str) -> Result<Vec<Tweet>> {
+        // remove retweets
         let tweet_fileds = "tweet.fields=author_id,created_at,entities,geo,in_reply_to_user_id,lang,possibly_sensitive,referenced_tweets,source,text,withheld";
         let uri = "https://api.twitter.com/2/tweets/search/recent?query=ekusiadadus".to_string()
             + "&"
