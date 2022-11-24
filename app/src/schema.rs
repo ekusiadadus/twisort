@@ -14,5 +14,6 @@ diesel::table! {
         referenced_tweets -> Nullable<Text>,
         source -> Text,
         withheld -> Nullable<Text>,
+        bigquery -> Bool,
     }
 }
