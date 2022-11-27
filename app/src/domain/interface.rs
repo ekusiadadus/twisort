@@ -9,6 +9,9 @@ pub trait ITweetRepository {
     async fn save_tweets(&self, tweets: Vec<Tweet>) -> Result<()>;
     async fn search(&self, query: &str) -> Result<Vec<Tweet>>;
     async fn get_tweets_by_hashtag(&self, hashtag: &str) -> Result<Vec<Tweet>>;
+    async fn delete(&self, id: &TweetID) -> Result<()>;
+    async fn delete_tweet(&self, id: &TweetID) -> Result<()>;
+    async fn favorite_tweet(&self, id: &TweetID) -> Result<()>;
 }
 
 #[async_trait]
@@ -22,12 +25,17 @@ pub trait IHttpClient {
         &self,
         url: &str,
         header: Option<reqwest::header::HeaderMap>,
-        body: String,
+        body: Option<String>,
     ) -> Result<reqwest::Response>;
     async fn put(
         &self,
         url: &str,
         header: Option<reqwest::header::HeaderMap>,
         body: String,
+    ) -> Result<reqwest::Response>;
+    async fn delete(
+        &self,
+        url: &str,
+        header: Option<reqwest::header::HeaderMap>,
     ) -> Result<reqwest::Response>;
 }

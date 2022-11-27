@@ -69,9 +69,9 @@ impl IHttpClient for HttpClient {
         &self,
         url: &str,
         header: Option<reqwest::header::HeaderMap>,
-        body: String,
+        body: std::option::Option<std::string::String>,
     ) -> Result<reqwest::Response> {
-        let mut req = self.client.post(url).body(body);
+        let mut req = self.client.post(url).body(body.unwrap_or_default());
         if let Some(h) = header {
             req = req.headers(h);
         }
@@ -88,6 +88,21 @@ impl IHttpClient for HttpClient {
         body: String,
     ) -> Result<reqwest::Response> {
         let mut req = self.client.put(url).body(body);
+        if let Some(h) = header {
+            req = req.headers(h);
+        }
+
+        let resp = req.send().await?;
+
+        Ok(resp)
+    }
+
+    async fn delete(
+        &self,
+        url: &str,
+        header: Option<reqwest::header::HeaderMap>,
+    ) -> Result<reqwest::Response> {
+        let mut req = self.client.delete(url);
         if let Some(h) = header {
             req = req.headers(h);
         }

@@ -223,6 +223,74 @@ impl ITweetRepository for TweetRepository {
         }
         Ok(())
     }
+
+    async fn delete(&self, id: &TweetID) -> Result<()> {
+        self.db
+            .execute(delete(tweet_records::table).filter(tweet_records::id.eq(id.0.clone())))
+            .await?;
+        Ok(())
+    }
+
+    async fn delete_tweet(&self, id: &TweetID) -> Result<()> {
+        // delete tweet from twitter
+        let uri = format!("https://api.twitter.com/2/tweets/{}", id.0);
+        let mut headers = reqwest::header::HeaderMap::new();
+        // add bearer_token
+
+        let bearer_token = format!(
+            "
+        Bearer {}",
+            self.bearer_token
+        );
+        headers.insert(
+            reqwest::header::AUTHORIZATION,
+            bearer_token.parse().unwrap(),
+        );
+        headers.insert(
+            reqwest::header::CONTENT_TYPE,
+            "application/json".parse().unwrap(),
+        );
+        let response = self.http_client.delete(&uri, Some(headers)).await.unwrap();
+
+        let body = response.text().await.unwrap();
+
+        print!("{}", body);
+
+        Ok(())
+    }
+
+    async fn favorite_tweet(&self, id: &TweetID) -> Result<()> {
+        // favorite tweet from twitter
+        let uri = format!("https://api.twitter.com/2/tweets/{}/like", id.0);
+        let mut headers = reqwest::header::HeaderMap::new();
+        // add bearer_token
+
+        let bearer_token = format!(
+            "
+        Bearer {}",
+            self.bearer_token
+        );
+        headers.insert(
+            reqwest::header::AUTHORIZATION,
+            bearer_token.parse().unwrap(),
+        );
+        headers.insert(
+            reqwest::header::CONTENT_TYPE,
+            "application/json".parse().unwrap(),
+        );
+
+        let response = self
+            .http_client
+            .post(&uri, Some(headers), None)
+            .await
+            .unwrap();
+
+        let body = response.text().await.unwrap();
+
+        print!("{}", body);
+
+        Ok(())
+    }
 }
 
 // TweetResponse
