@@ -21,8 +21,6 @@ migrate-new:
 migrate-rollback:
 	diesel migration redo --database-url=twisort.db
 
-run:
-	cargo run
 
 build:
 	cargo build
