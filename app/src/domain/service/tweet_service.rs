@@ -56,10 +56,10 @@ impl TweetService {
     //     Ok(FindTweetOutput { data: vec![tweet] })
     // }
 
-    // pub async fn search(&self, query: &str) -> Result<Vec<Tweet>> {
-    //     let tweets = self.tweet_repo.search(query).await?;
-    //     Ok(tweets)
-    // }
+    pub async fn search(&self, query: &str) -> Result<Vec<Tweet>> {
+        let tweets = self.tweet_repo.search(query).await?;
+        Ok(tweets)
+    }
 
     pub async fn get_tweets_by_hashtag(&self, hashtag: &str) -> Result<Vec<Tweet>> {
         let tweets = self.tweet_repo.get_tweets_by_hashtag(hashtag).await?;
