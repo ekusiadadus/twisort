@@ -9,7 +9,7 @@ edition = "2021"
 base64 = "0.21.0"
 dotenv = "0.15.0"
 percent-encoding = "2.2.0"
-reqwest = "0.11.14"
+reqwest = "0.11.15"
 serde = {version="1.0.152", features = ["derive"]}
 serde_json = "1.0.93"
 tokio = {version="1.26.0", features=["full"]}
