@@ -104,7 +104,7 @@ impl TweetRecord {
             lang: tweet.lang.unwrap(),
             possibly_sensitive: tweet.possibly_sensitive,
             referenced_tweets,
-            source: tweet.source.unwrap(),
+            source: tweet.source.unwrap_or_else(|| "".to_string()),
             withheld,
             bigquery: false,
         })
