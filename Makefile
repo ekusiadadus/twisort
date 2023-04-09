@@ -28,3 +28,8 @@ build:
 test:
 	cargo test
 
+clippy:
+	cargo clippy --all-targets --all-features -- -D warnings
+
+ci-test:
+  cargo clippy --all-targets --all-features -- -D warnings
