@@ -33,7 +33,7 @@ pub async fn infras(config: &Config) -> Infras {
     let http_client = Arc::new(infra::HttpClient::new());
     Infras {
         db: db_connector,
-        http_client: http_client.clone(),
+        http_client,
         bearer_token: config.bearer_token.clone(),
     }
 }

@@ -9,28 +9,6 @@ use diesel::prelude::*;
 use serde::*;
 use std::sync::Arc;
 
-#[derive(Debug)]
-pub enum TweetRepoError {
-    HttpClientError,
-}
-
-impl IServiceError for TweetRepoError {
-    fn error_type(&self) -> String {
-        use TweetRepoError::*;
-        match self {
-            HttpClientError => "http_client_error",
-        }
-        .to_string()
-    }
-
-    fn status_code(&self) -> http::StatusCode {
-        use TweetRepoError::*;
-        match self {
-            HttpClientError => http::StatusCode::INTERNAL_SERVER_ERROR,
-        }
-    }
-}
-
 #[derive(Queryable, Insertable, Identifiable)]
 pub struct TweetRecord {
     id: String,
@@ -49,50 +27,38 @@ pub struct TweetRecord {
 }
 
 impl TweetRecord {
-    pub fn to_model(self) -> Result<Tweet> {
-        let entities: Option<serde_json::Value> = serde_json::from_str(&self.entities).unwrap();
-        let geo: Option<serde_json::Value> = match self.geo {
-            Some(geo) => Some(serde_json::from_str(&geo).unwrap()),
-            None => None,
-        };
-        let referenced_tweets: Option<Vec<serde_json::Value>> = match self.referenced_tweets {
-            Some(referenced_tweets) => Some(serde_json::from_str(&referenced_tweets).unwrap()),
-            None => None,
-        };
-        let withheld: Option<serde_json::Value> = match self.withheld {
-            Some(withheld) => Some(serde_json::from_str(&withheld).unwrap()),
-            None => None,
-        };
+    pub fn to_model(&self) -> Result<Tweet> {
         Ok(Tweet::new(
-            self.id,
-            self.text,
-            self.author_id,
-            self.created_at,
-            entities,
-            geo,
-            self.in_reply_to_user_id,
-            Some(self.lang),
+            self.id.clone(),
+            self.text.clone(),
+            self.author_id.clone(),
+            self.created_at.clone(),
+            serde_json::from_str(&self.entities.clone()).unwrap_or_default(),
+            self.geo
+                .clone()
+                .map(|geo| serde_json::from_str(&geo).unwrap()),
+            self.in_reply_to_user_id.clone(),
+            Some(self.lang.clone()),
             self.possibly_sensitive,
-            referenced_tweets,
-            Some(self.source),
-            withheld,
+            self.referenced_tweets
+                .clone()
+                .map(|referenced_tweets| serde_json::from_str(&referenced_tweets).unwrap()),
+            Some(self.source.clone()),
+            self.withheld
+                .clone()
+                .map(|withheld| serde_json::from_str(&withheld).unwrap()),
         ))
     }
 
     pub fn from_model(tweet: Tweet) -> Result<Self> {
         let entities = serde_json::to_string(&tweet.entities).unwrap();
-        let geo = match tweet.geo {
-            Some(geo) => Some(serde_json::to_string(&geo).unwrap()),
-            None => None,
-        };
-        let referenced_tweets = match tweet.referenced_tweets {
-            Some(referenced_tweets) => Some(serde_json::to_string(&referenced_tweets).unwrap()),
-            None => None,
-        };
-        let withheld = match tweet.withheld {
-            Some(withheld) => Some(serde_json::to_string(&withheld).unwrap()),
-            None => None,
-        };
+        let geo = tweet.geo.map(|geo| serde_json::to_string(&geo).unwrap());
+        let referenced_tweets = tweet
+            .referenced_tweets
+            .map(|referenced_tweets| serde_json::to_string(&referenced_tweets).unwrap());
+        let withheld = tweet
+            .withheld
+            .map(|withheld| serde_json::to_string(&withheld).unwrap());
         Ok(TweetRecord {
             id: tweet.id,
             text: tweet.text,
@@ -104,7 +70,7 @@ impl TweetRecord {
             lang: tweet.lang.unwrap(),
             possibly_sensitive: tweet.possibly_sensitive,
             referenced_tweets,
-            source: tweet.source.unwrap_or_else(|| "".to_string()),
+            source: tweet.source.unwrap_or_default(),
             withheld,
             bigquery: false,
         })
@@ -214,7 +180,7 @@ impl ITweetRepository for TweetRepository {
     async fn save_tweets(&self, tweets: Vec<Tweet>) -> Result<()> {
         let records = tweets
             .into_iter()
-            .map(|tweet| TweetRecord::from_model(tweet))
+            .map(TweetRecord::from_model)
             .collect::<Result<Vec<TweetRecord>>>()?;
         for record in records {
             self.db
@@ -282,6 +248,40 @@ impl ITweetRepository for TweetRepository {
         let response = self
             .http_client
             .post(&uri, Some(headers), None)
+            .await
+            .unwrap();
+
+        let body = response.text().await.unwrap();
+
+        print!("{}", body);
+
+        Ok(())
+    }
+
+    async fn post(&self, tweet: Tweet) -> Result<()> {
+        let url = "https://api.twitter.com/2/tweets".to_string();
+        let mut headers = reqwest::header::HeaderMap::new();
+        let bearer_token = format!(
+            "
+            Bearer {}",
+            self.bearer_token
+        );
+
+        headers.insert(
+            reqwest::header::AUTHORIZATION,
+            bearer_token.parse().unwrap(),
+        );
+
+        headers.insert(
+            reqwest::header::CONTENT_TYPE,
+            "application/json".parse().unwrap(),
+        );
+
+        let body = serde_json::to_string(&tweet).unwrap();
+
+        let response = self
+            .http_client
+            .post(&url, Some(headers), Some(body))
             .await
             .unwrap();
 

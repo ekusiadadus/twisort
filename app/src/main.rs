@@ -28,10 +28,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // let tweets_table_name = std::env::var("TWEETS_TABLE_NAME").expect("TWEETS_TABLE_NAME not set");
 
     let app = initializer::new(initializer::Config {
-        db_url: db_url,
-        db_pool_size: db_pool_size,
+        db_url,
+        db_pool_size,
         // tweets_table_name: tweets_table_name,
-        bearer_token: bearer_token,
+        bearer_token,
     })
     .await;
 

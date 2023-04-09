@@ -18,6 +18,7 @@ pub struct Tweet {
 }
 
 impl Tweet {
+    #[allow(clippy::all)]
     pub fn new(
         id: String,
         text: String,

@@ -12,6 +12,7 @@ pub trait ITweetRepository {
     async fn delete(&self, id: &TweetID) -> Result<()>;
     async fn delete_tweet(&self, id: &TweetID) -> Result<()>;
     async fn favorite_tweet(&self, id: &TweetID) -> Result<()>;
+    async fn post(&self, tweet: Tweet) -> Result<()>;
 }
 
 #[async_trait]

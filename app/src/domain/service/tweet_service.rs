@@ -75,4 +75,9 @@ impl TweetService {
         self.tweet_repo.save_tweets(tweets).await?;
         Ok(())
     }
+
+    // pub async fn post(&self, tweet: Tweet) -> Result<()> {
+    //     self.tweet_repo.post(tweet).await?;
+    //     Ok(())
+    // }
 }
