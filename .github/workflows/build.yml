@@ -8,7 +8,7 @@ jobs:
       RUSTC_FORCE_INCREMENTAL: 1
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: ./.github/actions/cache_cargo
 
@@ -22,7 +22,7 @@ jobs:
     needs: build_cache
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - run: rustup component add rustfmt
 
@@ -41,7 +41,7 @@ jobs:
     needs: build_cache
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - run: rustup component add clippy
 
@@ -73,7 +73,7 @@ jobs:
       - name: create database for test
         run: PGPASSWORD=postgres psql -h localhost -U postgres -c "CREATE DATABASE test"
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: ./.github/actions/cache_cargo
 
