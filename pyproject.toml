@@ -5,7 +5,7 @@ description = ""
 authors = ["ekusiadadus <ekusiadadus@gmail.com>"]
 
 [tool.poetry.dependencies]
-python = ">=3.8,<3.11"
+python = ">=3.13,<3.14"
 pandas = "^1.5.1"
 SQLAlchemy = "^2.0.0"
 google-cloud-bigquery = "^3.3.5"
