@@ -5,7 +5,7 @@ runs:
 
   steps:
     - name: Cache cargo registry
-      uses: actions/cache@v3
+      uses: actions/cache@v6
       with:
         path: |
           ~/.cargo/bin/
